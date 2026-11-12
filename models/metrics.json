@@ -1,0 +1,491 @@
+{
+  "version": "1.0.0",
+  "model": "logistic_regression",
+  "decision_threshold": 0.36,
+  "random_seed": 42,
+  "zero_as_missing_rule": "In clinical physiology, a serum cholesterol of 0 mg/dL (chol=0) and resting blood pressure of 0 mm Hg (trestbps=0) are biologically impossible and represent missing clinical data or database null/zero-fill encodings in historical cohorts. clean_data() converts chol=0 and trestbps=0 to NaN prior to pipeline median imputation.",
+  "dataset_summary": {
+    "raw_row_count": 920,
+    "cleaned_row_count": 920,
+    "class_balance_overall": {
+      "0": 411,
+      "1": 509
+    },
+    "class_balance_train": {
+      "0": 329,
+      "1": 407,
+      "disease_prevalence": 0.553
+    },
+    "class_balance_test": {
+      "0": 82,
+      "1": 102,
+      "disease_prevalence": 0.5543
+    },
+    "split_sizes": {
+      "train": 736,
+      "test": 184
+    }
+  },
+  "features": {
+    "numeric": [
+      "age",
+      "trestbps",
+      "thalach",
+      "oldpeak"
+    ],
+    "categorical": [
+      "sex",
+      "cp",
+      "restecg",
+      "exang"
+    ],
+    "all": [
+      "age",
+      "trestbps",
+      "thalach",
+      "oldpeak",
+      "sex",
+      "cp",
+      "restecg",
+      "exang"
+    ],
+    "count": 8
+  },
+  "feature_imputation_and_missingness": [
+    {
+      "feature": "age",
+      "type": "numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "imputation_strategy": "SimpleImputer(strategy='median')"
+    },
+    {
+      "feature": "trestbps",
+      "type": "numeric",
+      "missing_count": 60,
+      "missing_pct": 6.52,
+      "imputation_strategy": "SimpleImputer(strategy='median')"
+    },
+    {
+      "feature": "thalach",
+      "type": "numeric",
+      "missing_count": 55,
+      "missing_pct": 5.98,
+      "imputation_strategy": "SimpleImputer(strategy='median')"
+    },
+    {
+      "feature": "oldpeak",
+      "type": "numeric",
+      "missing_count": 62,
+      "missing_pct": 6.74,
+      "imputation_strategy": "SimpleImputer(strategy='median')"
+    },
+    {
+      "feature": "sex",
+      "type": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "imputation_strategy": "SimpleImputer(strategy='most_frequent')"
+    },
+    {
+      "feature": "cp",
+      "type": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "imputation_strategy": "SimpleImputer(strategy='most_frequent')"
+    },
+    {
+      "feature": "restecg",
+      "type": "categorical",
+      "missing_count": 2,
+      "missing_pct": 0.22,
+      "imputation_strategy": "SimpleImputer(strategy='most_frequent')"
+    },
+    {
+      "feature": "exang",
+      "type": "categorical",
+      "missing_count": 55,
+      "missing_pct": 5.98,
+      "imputation_strategy": "SimpleImputer(strategy='most_frequent')"
+    }
+  ],
+  "calibration": {
+    "selected_method": "none",
+    "selection_rule": "Prefer simpler option ('none' > 'sigmoid' > 'isotonic') unless an alternative achieves \u0394Brier > 0.005 and \u0394LogLoss > 0.010 on out-of-fold training predictions.",
+    "selection_rationale": "Evaluated 3 calibration options on out-of-fold training predictions: 'none' (Brier=0.1456, LogLoss=0.4549), 'sigmoid' (Brier=0.1457, LogLoss=0.4545), and 'isotonic' (Brier=0.1450, LogLoss=0.5422). Under the documented parsimony rule requiring \u0394Brier > 0.005 and \u0394LogLoss > 0.010 to justify post-hoc complexity, uncalibrated Logistic Regression ('none') was chosen. Logistic Regression optimizes the Bernoulli log-likelihood directly and is naturally well-calibrated via its sigmoid link; post-hoc calibration provides no meaningful gain and non-parametric isotonic regression overfits small cohorts.",
+    "comparison_oof_metrics": {
+      "none": {
+        "brier_score": 0.1456,
+        "log_loss": 0.4549
+      },
+      "sigmoid": {
+        "brier_score": 0.1457,
+        "log_loss": 0.4545
+      },
+      "isotonic": {
+        "brier_score": 0.145,
+        "log_loss": 0.5422
+      }
+    }
+  },
+  "selected_model": {
+    "name": "logistic_regression",
+    "selection_rule": "Primary: ROC-AUC. 1-fold std rule (diff < 1.0 * std). Tie-breakers: model simplicity (Occam's razor), then lower fold std.",
+    "selection_reason": "Evaluated 3 models ('logistic_regression' (0.8685 \u00b1 0.0255), 'random_forest' (0.8659 \u00b1 0.0269), 'xgboost' (0.8648 \u00b1 0.0274)). With a 1-fold std tolerance cutoff of 0.8430, all competing models are statistically indistinguishable. Selected 'logistic_regression' (0.8685 \u00b1 0.0255) based on simplicity and clinical interpretability (linear log-odds parsimony) over complex tree ensembles when scores are within one std.",
+    "best_params": {
+      "classifier__solver": "lbfgs",
+      "classifier__penalty": "l2",
+      "classifier__max_iter": 2000,
+      "classifier__C": 1.0
+    },
+    "decision_threshold": 0.36,
+    "oof_recall_at_threshold": 0.9091,
+    "oof_metrics_at_threshold": {
+      "recall": 0.9091,
+      "precision": 0.7645,
+      "f1": 0.8305,
+      "accuracy": 0.7948,
+      "threshold": 0.36
+    }
+  },
+  "cv_hyperparameters_used": {
+    "logistic_regression": {
+      "classifier__solver": "lbfgs",
+      "classifier__penalty": "l2",
+      "classifier__max_iter": 2000,
+      "classifier__C": 1.0
+    },
+    "random_forest": {
+      "classifier__n_estimators": 500,
+      "classifier__min_samples_split": 10,
+      "classifier__min_samples_leaf": 1,
+      "classifier__max_features": "log2",
+      "classifier__max_depth": 5
+    },
+    "xgboost": {
+      "classifier__subsample": 1.0,
+      "classifier__n_estimators": 300,
+      "classifier__min_child_weight": 5,
+      "classifier__max_depth": 3,
+      "classifier__learning_rate": 0.01,
+      "classifier__gamma": 0.3,
+      "classifier__colsample_bytree": 0.6
+    }
+  },
+  "tuning_details_all_models": {
+    "logistic_regression": {
+      "search_space": {
+        "classifier__C": [
+          0.001,
+          0.01,
+          0.1,
+          1.0,
+          10.0,
+          100.0
+        ],
+        "classifier__penalty": [
+          "l2"
+        ],
+        "classifier__solver": [
+          "lbfgs"
+        ],
+        "classifier__max_iter": [
+          2000
+        ]
+      },
+      "best_params": {
+        "classifier__solver": "lbfgs",
+        "classifier__penalty": "l2",
+        "classifier__max_iter": 2000,
+        "classifier__C": 1.0
+      },
+      "best_cv_score": 0.8705,
+      "scoring": "roc_auc"
+    },
+    "random_forest": {
+      "search_space": {
+        "classifier__n_estimators": [
+          100,
+          200,
+          300,
+          500
+        ],
+        "classifier__max_depth": [
+          3,
+          5,
+          7,
+          10,
+          null
+        ],
+        "classifier__min_samples_split": [
+          2,
+          5,
+          10
+        ],
+        "classifier__min_samples_leaf": [
+          1,
+          2,
+          4
+        ],
+        "classifier__max_features": [
+          "sqrt",
+          "log2"
+        ]
+      },
+      "best_params": {
+        "classifier__n_estimators": 500,
+        "classifier__min_samples_split": 10,
+        "classifier__min_samples_leaf": 1,
+        "classifier__max_features": "log2",
+        "classifier__max_depth": 5
+      },
+      "best_cv_score": 0.8645,
+      "scoring": "roc_auc"
+    },
+    "xgboost": {
+      "search_space": {
+        "classifier__n_estimators": [
+          100,
+          200,
+          300,
+          500
+        ],
+        "classifier__max_depth": [
+          3,
+          5,
+          7,
+          9
+        ],
+        "classifier__learning_rate": [
+          0.01,
+          0.05,
+          0.1,
+          0.2
+        ],
+        "classifier__subsample": [
+          0.6,
+          0.8,
+          1.0
+        ],
+        "classifier__colsample_bytree": [
+          0.6,
+          0.8,
+          1.0
+        ],
+        "classifier__min_child_weight": [
+          1,
+          3,
+          5
+        ],
+        "classifier__gamma": [
+          0.0,
+          0.1,
+          0.3
+        ]
+      },
+      "best_params": {
+        "classifier__subsample": 1.0,
+        "classifier__n_estimators": 300,
+        "classifier__min_child_weight": 5,
+        "classifier__max_depth": 3,
+        "classifier__learning_rate": 0.01,
+        "classifier__gamma": 0.3,
+        "classifier__colsample_bytree": 0.6
+      },
+      "best_cv_score": 0.8598,
+      "scoring": "roc_auc"
+    }
+  },
+  "metrics": {
+    "cv_results": {
+      "logistic_regression": {
+        "accuracy_mean": 0.7961,
+        "accuracy_std": 0.0283,
+        "precision_mean": 0.8049,
+        "precision_std": 0.0319,
+        "recall_mean": 0.8356,
+        "recall_std": 0.0468,
+        "f1_mean": 0.8189,
+        "f1_std": 0.0267,
+        "roc_auc_mean": 0.8685,
+        "roc_auc_std": 0.0255,
+        "pr_auc_mean": 0.8764,
+        "pr_auc_std": 0.0316,
+        "brier_score_mean": 0.1453,
+        "brier_score_std": 0.0152
+      },
+      "random_forest": {
+        "accuracy_mean": 0.8004,
+        "accuracy_std": 0.0271,
+        "precision_mean": 0.7941,
+        "precision_std": 0.0303,
+        "recall_mean": 0.8651,
+        "recall_std": 0.0426,
+        "f1_mean": 0.8272,
+        "f1_std": 0.0246,
+        "roc_auc_mean": 0.8659,
+        "roc_auc_std": 0.0269,
+        "pr_auc_mean": 0.867,
+        "pr_auc_std": 0.0333,
+        "brier_score_mean": 0.1478,
+        "brier_score_std": 0.0123
+      },
+      "xgboost": {
+        "accuracy_mean": 0.7957,
+        "accuracy_std": 0.0271,
+        "precision_mean": 0.7945,
+        "precision_std": 0.032,
+        "recall_mean": 0.8531,
+        "recall_std": 0.0412,
+        "f1_mean": 0.8218,
+        "f1_std": 0.0242,
+        "roc_auc_mean": 0.8648,
+        "roc_auc_std": 0.0274,
+        "pr_auc_mean": 0.866,
+        "pr_auc_std": 0.0325,
+        "brier_score_mean": 0.1481,
+        "brier_score_std": 0.0131
+      }
+    },
+    "test_metrics": {
+      "accuracy": 0.7989130434782609,
+      "precision": 0.76,
+      "recall": 0.9313725490196079,
+      "specificity": 0.6341463414634146,
+      "f1": 0.8370044052863436,
+      "roc_auc": 0.8931133428981349,
+      "pr_auc": 0.9185768894542391,
+      "brier_score": 0.1340829357995158,
+      "threshold": 0.36
+    },
+    "test_metrics_ci_95": {
+      "accuracy": [
+        0.7391,
+        0.8588
+      ],
+      "precision": [
+        0.6875,
+        0.8374
+      ],
+      "recall": [
+        0.8818,
+        0.9785
+      ],
+      "specificity": [
+        0.5301,
+        0.75
+      ],
+      "f1": [
+        0.7857,
+        0.8924
+      ],
+      "roc_auc": [
+        0.8476,
+        0.9364
+      ],
+      "pr_auc": [
+        0.879,
+        0.9538
+      ],
+      "brier_score": [
+        0.1053,
+        0.1615
+      ]
+    },
+    "test_confusion_matrix": [
+      [
+        52,
+        30
+      ],
+      [
+        7,
+        95
+      ]
+    ],
+    "oof_metrics_at_threshold": {
+      "recall": 0.9091,
+      "precision": 0.7645,
+      "f1": 0.8305,
+      "accuracy": 0.7948,
+      "threshold": 0.36
+    },
+    "subgroup_analysis": {
+      "threshold": 0.36,
+      "test_set": {
+        "female": {
+          "n": 35,
+          "positives": 8,
+          "negatives": 27,
+          "recall": 0.75,
+          "recall_ci_95": [
+            0.4,
+            1.0
+          ],
+          "specificity": 0.8148,
+          "specificity_ci_95": [
+            0.6552,
+            0.96
+          ],
+          "confidence_status": "\u26a0\ufe0f Low Confidence (<30)"
+        },
+        "male": {
+          "n": 149,
+          "positives": 94,
+          "negatives": 55,
+          "recall": 0.9468,
+          "recall_ci_95": [
+            0.8972,
+            0.989
+          ],
+          "specificity": 0.5455,
+          "specificity_ci_95": [
+            0.4193,
+            0.6724
+          ],
+          "confidence_status": "Adequate"
+        }
+      },
+      "leave_one_site_out": {
+        "female": {
+          "n": 194,
+          "positives": 50,
+          "negatives": 144,
+          "recall": 0.74,
+          "recall_ci_95": [
+            0.6078,
+            0.8542
+          ],
+          "specificity": 0.8194,
+          "specificity_ci_95": [
+            0.7567,
+            0.8811
+          ],
+          "confidence_status": "Adequate"
+        },
+        "male": {
+          "n": 726,
+          "positives": 459,
+          "negatives": 267,
+          "recall": 0.9194,
+          "recall_ci_95": [
+            0.8944,
+            0.9435
+          ],
+          "specificity": 0.4831,
+          "specificity_ci_95": [
+            0.4265,
+            0.5439
+          ],
+          "confidence_status": "Adequate"
+        }
+      }
+    }
+  },
+  "created_at": "2026-11-12T11:25:10.882020+00:00",
+  "environment": {
+    "python": "3.11.15",
+    "sklearn": "1.6.1",
+    "xgboost": "2.1.4",
+    "platform": "macOS-27.2.1-arm64-arm-64bit"
+  }
+}

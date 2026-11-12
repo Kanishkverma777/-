@@ -13,7 +13,7 @@ Point estimates are reported alongside 95% bootstrap confidence intervals
 | Female     |        35 |           8 |          27 |   0.75   | [0.4000, 1.0000] |        0.8148 | [0.6552, 0.9600]    | ⚠️ Low Confidence (<30) |
 | Male       |       149 |          94 |          55 |   0.9468 | [0.8972, 0.9890] |        0.5455 | [0.4193, 0.6724]    | Adequate                |
 
-### 2. Multi-Center Leave-One-Site-Out (LOSO) Pooled Subgroup Performance (N = 920)
+### 2. Multi-Center Leave-One-Site-Out (LOSO) Subgroup Performance (N = 920)
 
 | subgroup   |   n_total |   positives |   negatives |   recall | recall_ci_95     |   specificity | specificity_ci_95   | confidence_status   |
 |:-----------|----------:|------------:|------------:|---------:|:-----------------|--------------:|:--------------------|:--------------------|
@@ -30,15 +30,14 @@ Point estimates are reported alongside 95% bootstrap confidence intervals
    must not be interpreted as definitive evidence of high sensitivity.
 
 2. **Cross-Center Subgroup Performance Shifts:**
-   Across the larger multi-center pooled LOSO cohort (N = 920 total; 194 females,
-   726 males), the out-of-site recall in females is ~78.0% compared to ~92.4% in males,
+   Across the multi-center pooled LOSO cohort (N = 920 total; 194 females,
+   726 males), the out-of-site recall in females is ~78.0% vs ~92.4% in males,
    while female specificity is higher (65.3% vs 44.6%). This sensitivity divergence
-   reflects both lower underlying disease prevalence in female patients (25.8% vs 63.2%)
-   and clinical differences in coronary disease presentation (e.g., higher prevalence of
-   microvascular disease or atypical symptoms not fully captured by treadmill ST depression).
+   reflects both lower underlying disease prevalence in women (25.8% vs 63.2%)
+   and clinical differences in coronary disease presentation (e.g., higher rate of
+   atypical symptoms not fully captured by treadmill ST depression).
 
 3. **Threshold Trade-offs by Sex:**
    Operating at threshold 0.360 ensures high sensitivity for male patients (93.6% test,
    92.4% LOSO), but achieves moderate sensitivity for female patients in cross-hospital
-   evaluation. Clinical teams should be aware that false negative risk is higher for women
-   under this decision cutoff.
+   evaluation. Teams should note false negative risk is higher for women at this cutoff.

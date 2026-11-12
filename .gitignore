@@ -46,3 +46,5 @@ htmlcov/
 # ruff
 .ruff_cache/
 
+!models/pipeline.joblib
+!models/metrics.json

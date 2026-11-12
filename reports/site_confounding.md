@@ -71,7 +71,7 @@ feature missingness rates, and database recording artifacts across the 4 cohorts
    True disease prevalence shifts dramatically across centers: Hungary (36.2%),
    Cleveland (46.1%), VA Long Beach (74.5%), and Switzerland (93.5%). Because of
    these baseline shifts, a single universal decision threshold produces varying
-   sensitivity and false alarm rates depending on the deployment center's baseline risk.
+   sensitivity and false alarm rates depending on center baseline risk.
 
 4. **Heterogeneous Missingness across Exercise Stress Parameters:**
    While Cleveland has complete records (0% missing across clinical features),

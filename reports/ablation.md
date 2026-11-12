@@ -28,9 +28,9 @@ Imputations are performed strictly inside the pipeline; no missing-indicator fea
    0.8685 to 0.8764, a difference of only 0.0079,
    which is well within one fold standard deviation
    (±0.0257).
-   Omitting features with heavy or non-random missingness does not cause a statistically
-   measurable reduction in cross-validated discrimination; candidate configurations are
-   statistically indistinguishable within cross-validation variance.
+   Omitting features with heavy or non-random missingness does not cause a
+   statistically measurable reduction in cross-validated discrimination;
+   candidate sets are indistinguishable within CV fold variance.
 
 2. **The Clinical Danger of Imputing `ca` and `thal`:**
    Fluoroscopy major vessels (`ca`) and thallium scintigraphy (`thal`)
@@ -59,13 +59,13 @@ Imputations are performed strictly inside the pipeline; no missing-indicator fea
      tolerance cutoff of 0.8507.
      (D) Drop ca, thal, slope, chol & fbs (8 Features) achieves CV ROC-AUC of 0.8685 ± 0.0255,
      well above the cutoff.
-   - **Training LOSO Comparison:** (D) Drop ca, thal, slope, chol & fbs (8 Features) achieves Training LOSO ROC-AUC of
-     0.8119 ± 0.0710,
+   - **Training LOSO Comparison:** (D) Drop ca, thal, slope, chol & fbs (8 Features) achieves Training LOSO
+     ROC-AUC of 0.8119 ± 0.0710,
      which is not worse than (A) All 13 Features (0.8153 ±
      0.0795, difference within 0.01 tolerance).
    - **Conclusion:** **(D) Drop ca, thal, slope, chol & fbs (8 Features) (8 Features)**
      is selected as the production model feature set. It achieves equivalent
      cross-validation and cross-site generalization while eliminating features
      with heavy missingness and recording artifacts (including the 100% missing
-     Swiss cholesterol and nuclear scintigraphy), avoiding optimistic imputation bias,
+     Swiss cholesterol and nuclear scintigraphy), avoiding optimistic bias,
      and relying purely on routine bedside hemodynamics and symptom assessments.
