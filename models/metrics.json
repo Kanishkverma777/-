@@ -481,10 +481,10 @@
       }
     }
   },
-  "created_at": "2026-11-12T14:08:48.498766+00:00",
+  "created_at": "2026-11-12T14:50:16.232853+00:00",
   "environment": {
-    "python": "3.11.15",
-    "sklearn": "1.9.1",
+    "python": "3.10.20",
+    "sklearn": "1.7.2",
     "xgboost": "3.2.0",
     "platform": "macOS-27.2.1-arm64-arm-64bit"
   }
