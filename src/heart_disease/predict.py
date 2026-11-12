@@ -24,17 +24,48 @@ _cached_pipeline: Any | None = None
 _cached_config: Config | None = None
 
 
+def _train_fallback_pipeline(config: Config) -> Any:
+    """Train a fresh pipeline in-memory from the tracked clean dataset.
+
+    Used when models/pipeline.joblib is missing or incompatible with the runtime
+    environment (e.g. cross-version unpickling on Streamlit Cloud).
+    """
+    import warnings
+
+    from heart_disease.data import clean_data, load_raw_data
+    from heart_disease.models import create_pipeline
+
+    logger.warning("Training fresh fallback pipeline from local dataset...")
+    raw_df = load_raw_data(config)
+    clean_df = clean_data(raw_df, config)
+
+    feature_cols = list(config.features.numeric) + list(config.features.categorical)
+    x_train = clean_df[feature_cols]
+    y_train = clean_df[config.data.target_column]
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            category=RuntimeWarning,
+            message=r".*(divide by zero|overflow|invalid value) encountered in matmul.*",
+        )
+        pipe = create_pipeline("logistic_regression", config)
+        pipe.fit(x_train, y_train)
+
+    return pipe
+
+
 def load_pipeline(config: Config | None = None) -> Any:
     """Load the trained pipeline from disk (cached after first call).
+
+    Falls back automatically to an in-memory fit if pipeline.joblib is missing
+    or was pickled under an incompatible scikit-learn / Python version.
 
     Args:
         config: Project configuration. If ``None``, loads the default.
 
     Returns:
         Trained sklearn Pipeline (or ``CalibratedClassifierCV``).
-
-    Raises:
-        FileNotFoundError: If the pipeline file does not exist.
     """
     global _cached_pipeline, _cached_config  # noqa: PLW0603
 
@@ -47,16 +78,22 @@ def load_pipeline(config: Config | None = None) -> Any:
     root = get_project_root()
     pipeline_path = root / config.paths.models_dir / "pipeline.joblib"
 
-    if not pipeline_path.exists():
-        raise FileNotFoundError(
-            f"Model not found at {pipeline_path}. "
-            "Run 'make train' or 'python -m heart_disease.train' first."
-        )
+    if pipeline_path.exists():
+        try:
+            logger.info("Loading pipeline from %s", pipeline_path)
+            loaded = joblib.load(pipeline_path)
+            _cached_pipeline = loaded
+            _cached_config = config
+            return _cached_pipeline
+        except Exception as exc:
+            logger.warning(
+                "Failed to unpickle pipeline from %s (%s). Falling back to in-memory fit.",
+                pipeline_path,
+                exc,
+            )
 
-    logger.info("Loading pipeline from %s", pipeline_path)
-    _cached_pipeline = joblib.load(pipeline_path)
+    _cached_pipeline = _train_fallback_pipeline(config)
     _cached_config = config
-
     return _cached_pipeline
 
 
@@ -98,13 +135,29 @@ def predict(patient: PatientInput, config: Config | None = None) -> dict[str, An
     feature_dict = patient.to_feature_dict()
     x = pd.DataFrame([feature_dict])
 
-    # Cast categorical columns to object (must match training dtype)
+    # Cast numeric and categorical columns to match expected training dtypes
+    for col in config.features.numeric:
+        if col in x.columns:
+            x[col] = pd.to_numeric(x[col], errors="coerce").astype(float)
+
     for col in config.features.categorical:
         if col in x.columns:
             x[col] = x[col].astype("object")
 
-    # Predict
-    probability = float(pipeline.predict_proba(x)[:, 1][0])
+    # Predict with version-resilient fallback
+    try:
+        raw_prob = pipeline.predict_proba(x)[:, 1][0]
+    except (AttributeError, ValueError, TypeError) as exc:
+        logger.warning(
+            "Pipeline predict_proba failed with %s. Falling back to fresh in-memory pipeline.",
+            exc,
+        )
+        global _cached_pipeline  # noqa: PLW0603
+        _cached_pipeline = _train_fallback_pipeline(config)
+        pipeline = _cached_pipeline
+        raw_prob = pipeline.predict_proba(x)[:, 1][0]
+
+    probability = float(raw_prob)
     prediction = int(probability >= threshold)
     risk_level = _get_risk_level(probability, config)
 

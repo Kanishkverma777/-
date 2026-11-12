@@ -229,3 +229,36 @@ def test_changing_cp_from_1_to_4_changes_output(
 
     # Output probabilities must differ significantly
     assert abs(res_cp4["probability"] - res_cp1["probability"]) > 0.01
+
+
+def test_predict_with_screenshot_unknown_inputs(config: Config) -> None:
+    """Predict succeeds when numeric features (trestbps, thalach, oldpeak) are None."""
+    data = {
+        "age": 55,
+        "sex": 0,
+        "cp": 1,
+        "trestbps": None,
+        "chol": None,
+        "fbs": 0,
+        "restecg": 1,
+        "thalach": None,
+        "exang": 1,
+        "oldpeak": None,
+        "slope": None,
+        "ca": None,
+        "thal": None,
+    }
+    patient = validate_input(data)
+    res = predict(patient, config)
+    assert 0.0 <= res["probability"] <= 1.0
+    assert res["prediction"] in (0, 1)
+    assert res["risk_level"] in ("Low", "Moderate", "Elevated", "High")
+
+
+def test_train_fallback_pipeline_resilience(config: Config) -> None:
+    """In-memory fallback training succeeds and produces a working pipeline."""
+    from heart_disease.predict import _train_fallback_pipeline
+
+    pipe = _train_fallback_pipeline(config)
+    assert pipe is not None
+    assert hasattr(pipe, "predict_proba")

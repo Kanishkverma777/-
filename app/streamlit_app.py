@@ -6,6 +6,7 @@ and ``src/heart_disease/``.
 
 from __future__ import annotations
 
+import logging
 import sys
 from pathlib import Path
 from typing import Any, cast
@@ -26,6 +27,8 @@ from app.components.shap_chart import _clean_feature_name, render_shap_chart  # 
 from heart_disease.config import Config, load_config  # noqa: E402
 from heart_disease.explain import compute_single_shap  # noqa: E402
 from heart_disease.predict import load_pipeline, predict, validate_input  # noqa: E402
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Cached loaders
@@ -76,6 +79,9 @@ def _patient_to_df(data: dict[str, Any], config: Config) -> Any:
     import pandas as pd
 
     df = pd.DataFrame([data])
+    for col in config.features.numeric:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").astype(float)
     for col in config.features.categorical:
         if col in df.columns:
             df[col] = df[col].astype("object")
@@ -129,7 +135,7 @@ def main() -> None:
 
     # Load model
     try:
-        pipeline = _load_model_cached()
+        _load_model_cached()
     except FileNotFoundError:
         st.error(
             "**Model not found.** Please train the model first:\n\n"
@@ -196,9 +202,10 @@ def main() -> None:
         # Predict
         try:
             result = predict(patient, config)
-        except Exception:
+        except Exception as exc:
+            logger.exception("Prediction failed: %s", exc)
             st.error(
-                "Prediction failed. Please check your inputs and try again.",
+                f"**Prediction failed:** {exc}. Please check your inputs and try again.",
                 icon=":material/error:",
             )
             return
@@ -218,14 +225,16 @@ def main() -> None:
         feat_names: list[str] = []
         with col2:
             try:
-                base_pipeline = _unwrap_pipeline(pipeline)
+                active_pipe = load_pipeline(config)
+                base_pipeline = _unwrap_pipeline(active_pipe)
                 shap_vals, feat_names = compute_single_shap(
                     base_pipeline,
                     _patient_to_df(patient_data, config),
                     config,
                 )
                 render_shap_chart(shap_vals, feat_names)
-            except Exception:
+            except Exception as exc:
+                logger.warning("SHAP explanation unavailable: %s", exc)
                 st.warning(
                     "SHAP explanation is currently unavailable.",
                     icon=":material/info:",
