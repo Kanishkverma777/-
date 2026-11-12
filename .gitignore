@@ -1,5 +1,6 @@
 # Data
-data/raw/
+data/raw/*
+!data/raw/heart_disease_uci.csv
 data/processed/
 
 # Models
