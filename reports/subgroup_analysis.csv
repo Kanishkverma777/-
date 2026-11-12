@@ -1,0 +1,5 @@
+evaluation,subgroup,n_total,positives,negatives,recall,recall_ci_95,specificity,specificity_ci_95,confidence_status
+Held-Out Test Set,Female,35,8,27,0.75,"[0.4000, 1.0000]",0.8148,"[0.6552, 0.9600]",⚠️ Low Confidence (<30)
+Held-Out Test Set,Male,149,94,55,0.9468,"[0.8972, 0.9890]",0.5455,"[0.4193, 0.6724]",Adequate
+Pooled LOSO (N=920),Female,194,50,144,0.74,"[0.6078, 0.8542]",0.8194,"[0.7567, 0.8811]",Adequate
+Pooled LOSO (N=920),Male,726,459,267,0.9194,"[0.8944, 0.9435]",0.4831,"[0.4265, 0.5439]",Adequate

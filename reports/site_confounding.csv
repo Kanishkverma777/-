@@ -1,0 +1,6 @@
+site,total_n,males,male_share_pct,male_positives,male_disease_rate_pct,females,female_share_pct,female_positives,female_disease_rate_pct,chol_zero_count,chol_zero_share_pct
+Cleveland,304,207,68.1,114,55.1,97,31.9,25,25.8,0,0.0
+Hungary,293,212,72.4,94,44.3,81,27.6,12,14.8,0,0.0
+Switzerland,123,113,91.9,105,92.9,10,8.1,10,100.0,123,100.0
+VA Long Beach,200,194,97.0,146,75.3,6,3.0,3,50.0,49,24.5
+Total (All Sites),920,726,78.9,459,63.2,194,21.1,50,25.8,172,18.7
