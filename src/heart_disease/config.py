@@ -92,6 +92,18 @@ class AblationConfig(BaseModel):
     loso_auc_tolerance: float = Field(default=0.01, ge=0.0)
 
 
+class LLMConfig(BaseModel):
+    """Configuration for LLM clinical summary generation."""
+
+    provider: str = "groq"
+    model: str = "openai/gpt-oss-120b"
+    api_url: str = "https://api.groq.com/openai/v1/chat/completions"
+    temperature: float = 0.3
+    max_tokens: int = 800
+    api_key_env_var: str = "GROQ_API_KEY"
+    default_api_key: str = ""
+
+
 class Config(BaseModel):
     """Root configuration model."""
 
@@ -104,6 +116,7 @@ class Config(BaseModel):
     models: dict[str, ModelParamGrid] = Field(default_factory=dict)
     paths: PathsConfig = Field(default_factory=PathsConfig)
     app: AppConfig = Field(default_factory=AppConfig)
+    llm: LLMConfig = Field(default_factory=LLMConfig)
 
 
 def load_config(path: Path | None = None) -> Config:

@@ -85,3 +85,12 @@ app:
   display_min_probability: 0.01
   display_max_probability: 0.99
 
+llm:
+  provider: groq
+  model: openai/gpt-oss-120b
+  api_url: https://api.groq.com/openai/v1/chat/completions
+  temperature: 0.3
+  max_tokens: 800
+  api_key_env_var: GROQ_API_KEY
+  default_api_key: ""
+

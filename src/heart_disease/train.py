@@ -375,13 +375,15 @@ def save_pipeline(
     pipeline: Any,
     metadata: dict[str, Any],
     config: Config,
+    x_train: pd.DataFrame | None = None,
 ) -> None:
-    """Save the trained pipeline and comprehensive metadata to disk.
+    """Save the trained pipeline, SHAP background reference, and comprehensive metadata to disk.
 
     Args:
         pipeline: Trained (and calibrated) pipeline.
         metadata: Metadata dictionary to serialize.
         config: Project configuration.
+        x_train: Optional training features to generate SHAP population background.
     """
     root = get_project_root()
     models_dir = root / config.paths.models_dir
@@ -397,6 +399,25 @@ def save_pipeline(
     with open(metrics_path, "w") as f:
         json.dump(metadata, f, indent=2, default=str)
     logger.info("Saved metadata to %s", metrics_path)
+
+    # Save SHAP background reference
+    if x_train is not None and hasattr(pipeline, "named_steps"):
+        try:
+            import shap
+
+            preprocessor = pipeline.named_steps.get("preprocessor")
+            if preprocessor is not None:
+                x_trans = preprocessor.transform(x_train)
+                bg_sample = (
+                    x_trans
+                    if len(x_trans) <= 200
+                    else shap.sample(x_trans, 200, random_state=config.project.random_seed)
+                )
+                shap_bg_path = models_dir / "shap_background.joblib"
+                joblib.dump(bg_sample, shap_bg_path)
+                logger.info("Saved SHAP background reference to %s", shap_bg_path)
+        except Exception as exc:
+            logger.warning("Could not save SHAP background: %s", exc)
 
 
 # ---------------------------------------------------------------------------
@@ -721,7 +742,7 @@ def main() -> None:
         },
     }
 
-    save_pipeline(final_pipeline, metadata, config)
+    save_pipeline(final_pipeline, metadata, config, x_train=x_train)
 
     logger.info("=" * 60)
     logger.info("Training pipeline complete! Best model: %s", best_model_name)

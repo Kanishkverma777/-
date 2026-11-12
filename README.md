@@ -1,4 +1,4 @@
-# Heart Disease Risk Prediction (End-to-End ML System)
+# हृदय (Heart Disease Risk Predictor)
 
 [![CI](https://github.com/kiyo/heart-disease-ml/actions/workflows/ci.yml/badge.svg)](https://github.com/kiyo/heart-disease-ml/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
@@ -14,7 +14,7 @@ A production-quality machine learning system for predicting the presence of hear
 Coronary artery disease is one of the leading causes of morbidity and mortality worldwide. Early risk stratification allows clinicians to prioritize diagnostic workups and preventive interventions.
 
 This project formulates heart disease risk assessment as a supervised binary classification problem:
-- **Input:** 10 standardized clinical measurements (demographics, resting hemodynamics, ECG findings, and treadmill exercise stress response). Advanced diagnostic features with heavy missingness and optimistic imputation bias (`ca`, `thal`, `slope`) were ablated and omitted via variance-aware cross-validation.
+- **Input:** 8 standardized clinical measurements (demographics, resting hemodynamics, ECG findings, and treadmill exercise stress response: `age`, `trestbps`, `thalach`, `oldpeak`, `sex`, `cp`, `restecg`, `exang`). Diagnostic features with heavy missingness, institutional zero-fill artifacts, and optimistic imputation bias (`ca`, `thal`, `slope`, `chol`, `fbs`) were ablated and omitted via variance-aware cross-validation. Optional bedside inputs (`chol`, `fbs`) remain supported in data schemas and interfaces.
 - **Target:** Presence of heart disease (`0` = healthy / <50% diameter stenosis; `1` = presence of heart disease / ≥50% diameter stenosis).
 - **Clinical Priority:** **High Recall (Sensitivity)**. In a clinical diagnostic assistance setting, a False Negative (missing a diseased patient) is considerably more dangerous than a False Positive (prompting follow-up confirmation). Therefore, the modeling process optimizes decision thresholds specifically for high recall (≥0.90 target) while calibrating probabilities for meaningful risk communication.
 
@@ -84,8 +84,8 @@ flowchart TD
         B --> C[Train Set: 736 samples]
         B --> D[Test Set: 184 samples]
         C --> E[ColumnTransformer Pipeline]
-        E -->|Impute + Scale| F[Numeric Features: age, trestbps, chol, thalach, oldpeak]
-        E -->|Impute + OHE| G[Categorical Features: sex, cp, fbs, restecg, exang]
+        E -->|Impute + Scale| F[Numeric Features: age, trestbps, thalach, oldpeak]
+        E -->|Impute + OHE| G[Categorical Features: sex, cp, restecg, exang]
     end
 
     subgraph Modeling & Calibration
@@ -93,8 +93,7 @@ flowchart TD
         H --> I[Repeated Stratified CV: 5 Folds x 10 Repeats]
         I --> J[RandomizedSearchCV Tuning]
         J --> K[Best Model: Logistic Regression]
-        K --> L[Recall-Optimized Threshold Analysis: Cutoff 0.330]
-        L --> M[Calibration Assessment: Uncalibrated sigmoid link preferred]
+        K --> L[Recall-Optimized Threshold Analysis: Cutoff 0.360]
         M --> N[Held-out Test Evaluation]
         N --> O[Persisted Artifacts: pipeline.joblib + metrics.json]
     end
@@ -105,7 +104,7 @@ flowchart TD
         O --> R
         R --> S[risk_gauge.py: Calibrated Probability & Category]
         R --> T[shap_chart.py: Patient SHAP Feature Contributions]
-        U[disclaimer.py: Non-Medical Notice] --> S
+        S & T --> V[ai_summary.py: Groq GPT-OSS 120B Clinical Summary & Actions]
     end
 ```
 
@@ -281,19 +280,23 @@ cd heart-disease-ml
 make install
 # Or: uv pip install -r requirements.txt -e ".[dev]"
 
-# 3. Download / cache dataset
+# 3. (Optional) Configure Groq API key for LLM clinical summary
+cp .env.example .env
+# Edit .env and set GROQ_API_KEY=gsk_...
+
+# 4. Download / cache dataset
 make download-data
 
-# 4. Run model training, tuning, calibration, and report generation
+# 5. Run model training, tuning, calibration, and report generation
 make train
 
-# 5. Run tests with coverage (target >=80%)
+# 6. Run tests with coverage (target >=80%)
 make test
 
-# 6. Run code quality checks (ruff + mypy)
+# 7. Run code quality checks (ruff + mypy)
 make lint
 
-# 7. Launch the interactive Streamlit application
+# 8. Launch the interactive Streamlit application
 make run-app
 ```
 
@@ -335,6 +338,7 @@ heart-disease-ml/
 │   ├── evaluate.py               # Metrics calculation and report plotting
 │   ├── explain.py                # SHAP local and global explainability
 │   ├── predict.py                # Production prediction pipeline
+│   ├── llm.py                    # Groq API client & prompt synthesis for GPT-OSS 120B
 │   ├── logging_utils.py          # Structured logging
 │   └── py.typed                  # PEP 561 typing marker
 ├── app/
@@ -342,7 +346,7 @@ heart-disease-ml/
 │   ├── streamlit_app.py          # Thin Streamlit presentation layer
 │   └── components/
 │       ├── __init__.py
-│       ├── disclaimer.py         # Prominent educational/medical disclaimer
+│       ├── ai_summary.py         # AI Clinical Summary & Actionable Recommendations (GPT-OSS 120B)
 │       ├── input_form.py         # Clinically bounded input form widgets
 │       ├── risk_gauge.py         # Visual risk gauge & status badge
 │       └── shap_chart.py         # Patient-level SHAP explanation chart
@@ -360,6 +364,7 @@ heart-disease-ml/
 │   ├── test_evaluate.py
 │   ├── test_explain.py
 │   ├── test_features.py
+│   ├── test_llm.py
 │   ├── test_logging.py
 │   ├── test_models.py
 │   ├── test_predict.py
@@ -367,6 +372,7 @@ heart-disease-ml/
 │   └── test_train.py
 ├── .github/workflows/
 │   └── ci.yml                    # Automated CI pipeline (Ruff, Mypy, Pytest)
+├── .env.example                  # Template for API keys
 ├── Dockerfile                    # Production container image
 ├── Makefile                      # Standardized developer workflows
 ├── pyproject.toml                # Build system & tooling configurations

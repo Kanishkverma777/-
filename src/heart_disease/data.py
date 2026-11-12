@@ -254,19 +254,37 @@ def clean_data(
         "0": 0,
     }
 
-    if "sex" in df.columns and df["sex"].dtype == "object":
+    if "sex" in df.columns and (
+        df["sex"].dtype == "object" or pd.api.types.is_string_dtype(df["sex"])
+    ):
         df["sex"] = df["sex"].astype(str).str.lower().map(sex_map)
-    if "cp" in df.columns and df["cp"].dtype == "object":
+    if "cp" in df.columns and (
+        df["cp"].dtype == "object" or pd.api.types.is_string_dtype(df["cp"])
+    ):
         df["cp"] = df["cp"].astype(str).str.lower().map(cp_map)
-    if "fbs" in df.columns and (df["fbs"].dtype == "bool" or df["fbs"].dtype == "object"):
+    if "fbs" in df.columns and (
+        pd.api.types.is_bool_dtype(df["fbs"])
+        or df["fbs"].dtype == "object"
+        or pd.api.types.is_string_dtype(df["fbs"])
+    ):
         df["fbs"] = df["fbs"].map(bool_map)
-    if "restecg" in df.columns and df["restecg"].dtype == "object":
+    if "restecg" in df.columns and (
+        df["restecg"].dtype == "object" or pd.api.types.is_string_dtype(df["restecg"])
+    ):
         df["restecg"] = df["restecg"].astype(str).str.lower().map(restecg_map)
-    if "exang" in df.columns and (df["exang"].dtype == "bool" or df["exang"].dtype == "object"):
+    if "exang" in df.columns and (
+        pd.api.types.is_bool_dtype(df["exang"])
+        or df["exang"].dtype == "object"
+        or pd.api.types.is_string_dtype(df["exang"])
+    ):
         df["exang"] = df["exang"].map(bool_map)
-    if "slope" in df.columns and df["slope"].dtype == "object":
+    if "slope" in df.columns and (
+        df["slope"].dtype == "object" or pd.api.types.is_string_dtype(df["slope"])
+    ):
         df["slope"] = df["slope"].astype(str).str.lower().map(slope_map)
-    if "thal" in df.columns and df["thal"].dtype == "object":
+    if "thal" in df.columns and (
+        df["thal"].dtype == "object" or pd.api.types.is_string_dtype(df["thal"])
+    ):
         df["thal"] = df["thal"].astype(str).str.lower().map(thal_map)
 
     # --- Replace missing markers with NaN ---

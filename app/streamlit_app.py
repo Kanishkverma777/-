@@ -16,12 +16,13 @@ _project_root = Path(__file__).resolve().parent.parent
 if str(_project_root) not in sys.path:
     sys.path.insert(0, str(_project_root))
 
+import numpy as np  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from app.components.disclaimer import render_disclaimer  # noqa: E402
+from app.components.ai_summary import render_ai_summary_section  # noqa: E402
 from app.components.input_form import render_input_form  # noqa: E402
 from app.components.risk_gauge import render_risk_gauge  # noqa: E402
-from app.components.shap_chart import render_shap_chart  # noqa: E402
+from app.components.shap_chart import _clean_feature_name, render_shap_chart  # noqa: E402
 from heart_disease.config import Config, load_config  # noqa: E402
 from heart_disease.explain import compute_single_shap  # noqa: E402
 from heart_disease.predict import load_pipeline, predict, validate_input  # noqa: E402
@@ -43,8 +44,7 @@ def _load_model_cached() -> Any:
     return load_pipeline()
 
 
-@st.cache_resource
-def _load_metadata_cached() -> dict[str, Any]:
+def _load_metadata() -> dict[str, Any]:
     """Load metadata from models/metrics.json."""
     import json
 
@@ -99,21 +99,32 @@ def _format_validation_error(error: Exception) -> str:
 
 
 def main() -> None:
-    """Heart Disease Risk Predictor — main Streamlit entry point."""
+    """हृदय (Heart Disease Risk Predictor) — main Streamlit entry point."""
     st.set_page_config(
-        page_title="Heart Disease Risk Predictor",
-        page_icon="❤️",
+        page_title="हृदय (Heart Disease Risk Predictor)",
+        page_icon=":material/cardiology:",
         layout="wide",
     )
 
-    st.title("❤️ Heart Disease Risk Predictor")
-    render_disclaimer()
+    st.markdown(
+        "<h1 style='font-size: 5.5rem; font-weight: 800; "
+        "margin-bottom: 0.5rem; line-height: 1.15;'>"
+        "हृदय "
+        "<span style='font-size: 0.55em; font-weight: 500; opacity: 0.85;'>"
+        "(Heart Disease Risk Predictor)"
+        "</span>"
+        "</h1>",
+        unsafe_allow_html=True,
+    )
 
     # Load config
     try:
         config = _load_config_cached()
     except Exception:
-        st.error("⚠️ Configuration error. Please check that `configs/config.yaml` exists.")
+        st.error(
+            "Configuration error. Please check that `configs/config.yaml` exists.",
+            icon=":material/error:",
+        )
         return
 
     # Load model
@@ -121,56 +132,75 @@ def main() -> None:
         pipeline = _load_model_cached()
     except FileNotFoundError:
         st.error(
-            "🔍 **Model not found.** Please train the model first:\n\n"
+            "**Model not found.** Please train the model first:\n\n"
             "```bash\nmake train\n```\n\n"
             "or\n\n"
-            "```bash\npython -m heart_disease.train\n```"
+            "```bash\npython -m heart_disease.train\n```",
+            icon=":material/search:",
         )
         return
     except Exception:
-        st.error("⚠️ Error loading the model. Please retrain with `make train`.")
+        st.error(
+            "Error loading the model. Please retrain with `make train`.",
+            icon=":material/error:",
+        )
         return
 
     # ---- Sidebar: patient input form ----
-    metadata = _load_metadata_cached()
+    metadata = _load_metadata()
     active_thresh = float(metadata.get("decision_threshold", config.training.decision_threshold))
     model_name = metadata.get("model", "calibrated model")
 
-    st.sidebar.header("Patient Clinical Data")
+    st.sidebar.header("Patient Clinical Data", icon=":material/person:")
     st.sidebar.caption(
         f"Model: `{model_name}` | Threshold: `{active_thresh:.3f}` *(from `metrics.json`)*"
     )
     patient_data = render_input_form()
 
     predict_clicked = st.sidebar.button(
-        "🔬 Predict Risk", type="primary", use_container_width=True
+        "Predict Risk",
+        icon=":material/analytics:",
+        type="primary",
+        use_container_width=True,
     )
 
     if predict_clicked:
+        # Clear any existing AI summary cache so fresh prompt and inputs are used
+        for key in list(st.session_state.keys()):
+            if str(key).startswith("ai_summary_"):
+                del st.session_state[key]
+
         # Check for missing/unknown optional features and surface clinical warning
         active_features = set(config.features.numeric) | set(config.features.categorical)
         missing_inputs = [k for k, v in patient_data.items() if v is None and k in active_features]
         if missing_inputs:
             st.warning(
-                f"⚠️ **Missing / Incomplete Clinical Workup**: The following diagnostic feature(s) "
+                f"**Missing / Incomplete Clinical Workup**: The following diagnostic feature(s) "
                 f"are marked as Unknown: `{', '.join(missing_inputs)}`. Values are automatically "
                 f"imputed with population statistics (medians/modes) inside the pipeline. "
                 f"Risk predictions for patients with omitted diagnostic procedures carry higher "
-                f"clinical uncertainty."
+                f"clinical uncertainty.",
+                icon=":material/warning:",
             )
 
         # Validate
         try:
             patient = validate_input(patient_data)
         except Exception as exc:
-            st.error(f"❌ **Invalid input:** {_format_validation_error(exc)}")
+            st.error(
+                f"**Invalid input:** {_format_validation_error(exc)}",
+                icon=":material/error:",
+            )
             return
 
         # Predict
         try:
             result = predict(patient, config)
         except Exception:
-            st.error("⚠️ Prediction failed. Please check your inputs and try again.")
+            st.error(
+                "Prediction failed. Please check your inputs and try again.",
+                icon=":material/error:",
+            )
             return
 
         # ---- Display results ----
@@ -184,6 +214,8 @@ def main() -> None:
                 display_probability=result.get("display_probability"),
             )
 
+        shap_vals = None
+        feat_names: list[str] = []
         with col2:
             try:
                 base_pipeline = _unwrap_pipeline(pipeline)
@@ -194,9 +226,32 @@ def main() -> None:
                 )
                 render_shap_chart(shap_vals, feat_names)
             except Exception:
-                st.warning("⚠️ SHAP explanation is currently unavailable.")
+                st.warning(
+                    "SHAP explanation is currently unavailable.",
+                    icon=":material/info:",
+                )
+
+        # ---- AI Clinical Summary & Recommendations (GPT-OSS 120B) ----
+        top_features: list[tuple[str, float]] = []
+        if shap_vals is not None and len(feat_names) == len(shap_vals):
+            sorted_indices = np.argsort(np.abs(shap_vals))[::-1][:6]
+            top_features = [
+                (_clean_feature_name(feat_names[int(i)]), float(shap_vals[int(i)]))
+                for i in sorted_indices
+            ]
+
+        try:
+            render_ai_summary_section(patient_data, result, top_features, config)
+        except Exception as exc:
+            st.warning(
+                f"AI summary is temporarily unavailable: {exc}",
+                icon=":material/info:",
+            )
     else:
-        st.info("👈 Enter patient data in the sidebar and click **Predict Risk**.")
+        st.info(
+            "Enter patient data in the sidebar and click Predict Risk.",
+            icon=":material/arrow_back:",
+        )
 
 
 if __name__ == "__main__":

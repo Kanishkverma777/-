@@ -7,12 +7,12 @@ from app.components.shap_chart import _clean_feature_name
 
 
 def test_risk_color_mapping() -> None:
-    """Known risk levels map to the correct colour emoji."""
-    assert get_risk_color("Low") == "🟢"
-    assert get_risk_color("Moderate") == "🟡"
-    assert get_risk_color("Elevated") == "🟠"
-    assert get_risk_color("High") == "🔴"
-    assert get_risk_color("Unknown") == "⚪"  # fallback
+    """Known risk levels map to the correct prebuilt library icon."""
+    assert get_risk_color("Low") == ":material/check_circle:"
+    assert get_risk_color("Moderate") == ":material/info:"
+    assert get_risk_color("Elevated") == ":material/warning:"
+    assert get_risk_color("High") == ":material/error:"
+    assert get_risk_color("Unknown") == ":material/help:"  # fallback
 
 
 def test_risk_message_content() -> None:
@@ -28,6 +28,8 @@ def test_clean_feature_name_removes_prefix() -> None:
     assert _clean_feature_name("num__age") == "Age"
     assert _clean_feature_name("cat__cp_1") == "Chest Pain: Typical Angina"
     assert _clean_feature_name("num__thalach") == "Max Heart Rate"
+    assert _clean_feature_name("cat__restecg_0.0") == "ECG: Normal"
+    assert _clean_feature_name("cat__exang_1.0") == "Exercise Angina: Yes"
 
 
 def test_clean_feature_name_unknown() -> None:

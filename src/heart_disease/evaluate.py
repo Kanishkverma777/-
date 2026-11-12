@@ -1463,7 +1463,8 @@ def generate_site_confounding_report(
     features_to_report = [f for f in RAW_CLINICAL_FEATURES if f in raw_for_zeros.columns]
     if not features_to_report:
         features_to_report = [
-            c for c in df.columns
+            c
+            for c in df.columns
             if c not in ("id", "dataset", "num", "num_clean", "target", "sex_clean")
         ]
 

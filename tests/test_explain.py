@@ -43,6 +43,7 @@ def test_compute_single_shap(sample_dataframe: pd.DataFrame, config: Config) -> 
 
     assert sv.ndim == 1
     assert len(sv) == len(feat_names)
+    assert np.any(np.abs(sv) > 1e-4)
 
 
 def test_plot_shap_summary(sample_dataframe: pd.DataFrame, config: Config, tmp_path: Path) -> None:

@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import streamlit as st
 
-# Colour / emoji mapping
-RISK_COLORS: dict[str, str] = {
-    "Low": "🟢",
-    "Moderate": "🟡",
-    "Elevated": "🟠",
-    "High": "🔴",
+# Prebuilt library icons (Google Material Symbols)
+RISK_ICONS: dict[str, str] = {
+    "Low": ":material/check_circle:",
+    "Moderate": ":material/info:",
+    "Elevated": ":material/warning:",
+    "High": ":material/error:",
 }
 
 RISK_MESSAGES: dict[str, str] = {
@@ -29,16 +29,28 @@ RISK_MESSAGES: dict[str, str] = {
 }
 
 
-def get_risk_color(risk_level: str) -> str:
-    """Return the emoji colour indicator for a risk level.
+def get_risk_icon(risk_level: str) -> str:
+    """Return the prebuilt library icon indicator for a risk level.
 
     Args:
         risk_level: One of ``'Low'``, ``'Moderate'``, ``'Elevated'``, ``'High'``.
 
     Returns:
-        Emoji string.
+        Material Symbol icon string.
     """
-    return RISK_COLORS.get(risk_level, "⚪")
+    return RISK_ICONS.get(risk_level, ":material/help:")
+
+
+def get_risk_color(risk_level: str) -> str:
+    """Return the indicator for a risk level (backward-compatible alias).
+
+    Args:
+        risk_level: One of ``'Low'``, ``'Moderate'``, ``'Elevated'``, ``'High'``.
+
+    Returns:
+        Material Symbol icon string.
+    """
+    return get_risk_icon(risk_level)
 
 
 def get_risk_message(risk_level: str) -> str:
@@ -67,9 +79,9 @@ def render_risk_gauge(
         threshold: Decision threshold used by the model.
         display_probability: Optional pre-formatted probability string (e.g. '>99%' or '<1%').
     """
-    color = get_risk_color(risk_level)
+    icon = get_risk_icon(risk_level)
 
-    st.subheader("Prediction Results")
+    st.subheader("Prediction Results", icon=":material/analytics:")
 
     # Format probability display if not pre-computed
     if display_probability is None:
@@ -86,14 +98,14 @@ def render_risk_gauge(
     st.metric(label="Heart Disease Probability", value=disp_val)
 
     # Risk-level badge
-    st.markdown(f"### {color} Risk Level: **{risk_level}**")
+    st.markdown(f"### {icon} Risk Level: **{risk_level}**")
 
     # Progress bar (clipped to [0.01, 0.99] to prevent visual edge pinning)
     clipped_bar_val = max(0.01, min(probability, 0.99))
     st.progress(clipped_bar_val)
 
     # Descriptive message
-    st.info(get_risk_message(risk_level))
+    st.info(get_risk_message(risk_level), icon=":material/info:")
 
     # Threshold footnote
     st.caption(f"Decision threshold: {threshold:.3f} (loaded from `models/metrics.json`)")

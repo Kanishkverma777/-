@@ -6,7 +6,7 @@ from typing import Any
 
 import streamlit as st
 
-from heart_disease.schema import CATEGORICAL_LABELS, FEATURE_DESCRIPTIONS
+from heart_disease.schema import CATEGORICAL_LABELS
 
 
 def render_input_form() -> dict[str, Any]:
@@ -24,7 +24,6 @@ def render_input_form() -> dict[str, Any]:
         max_value=120,
         value=55,
         step=1,
-        help=FEATURE_DESCRIPTIONS["age"],
     )
 
     # --- Sex ---
@@ -33,7 +32,6 @@ def render_input_form() -> dict[str, Any]:
         "Sex",
         options=list(sex_labels.keys()),
         format_func=lambda x: sex_labels[x],
-        help=FEATURE_DESCRIPTIONS["sex"],
     )
 
     # --- Chest Pain Type ---
@@ -42,12 +40,12 @@ def render_input_form() -> dict[str, Any]:
         "Chest Pain Type",
         options=list(cp_labels.keys()),
         format_func=lambda x: cp_labels[x],
-        help=FEATURE_DESCRIPTIONS["cp"],
     )
 
     # --- Resting Blood Pressure ---
     trestbps_unknown = st.sidebar.checkbox(
-        "Blood pressure unknown", value=False, help="Check if resting blood pressure was not taken"
+        "Blood pressure unknown",
+        value=False,
     )
     if trestbps_unknown:
         data["trestbps"] = None
@@ -58,12 +56,12 @@ def render_input_form() -> dict[str, Any]:
             max_value=250,
             value=130,
             step=1,
-            help=FEATURE_DESCRIPTIONS["trestbps"],
         )
 
     # --- Cholesterol ---
     chol_unknown = st.sidebar.checkbox(
-        "Cholesterol unknown", value=False, help="Check if serum lipid panel is pending/unknown"
+        "Cholesterol unknown",
+        value=False,
     )
     if chol_unknown:
         data["chol"] = None
@@ -74,7 +72,6 @@ def render_input_form() -> dict[str, Any]:
             max_value=600,
             value=245,
             step=1,
-            help=FEATURE_DESCRIPTIONS["chol"],
         )
 
     # --- Fasting Blood Sugar ---
@@ -84,7 +81,6 @@ def render_input_form() -> dict[str, Any]:
         options=list(fbs_labels.keys()),
         index=1,  # Default to 0 (<= 120 mg/dl)
         format_func=lambda x: fbs_labels[x],
-        help=FEATURE_DESCRIPTIONS["fbs"],
     )
     data["fbs"] = None if fbs_val is None or fbs_val == -1 else int(fbs_val)
 
@@ -100,13 +96,13 @@ def render_input_form() -> dict[str, Any]:
         options=list(restecg_labels.keys()),
         index=1,  # Default to Normal (0)
         format_func=lambda x: restecg_labels[x],
-        help=FEATURE_DESCRIPTIONS["restecg"],
     )
     data["restecg"] = None if restecg_val is None or restecg_val == -1 else int(restecg_val)
 
     # --- Max Heart Rate ---
     thalach_unknown = st.sidebar.checkbox(
-        "Max heart rate unknown", value=False, help="Check if exercise stress test was not done"
+        "Max heart rate unknown",
+        value=False,
     )
     if thalach_unknown:
         data["thalach"] = None
@@ -117,7 +113,6 @@ def render_input_form() -> dict[str, Any]:
             max_value=250,
             value=150,
             step=1,
-            help=FEATURE_DESCRIPTIONS["thalach"],
         )
 
     # --- Exercise-Induced Angina ---
@@ -127,13 +122,13 @@ def render_input_form() -> dict[str, Any]:
         options=list(exang_labels.keys()),
         index=1,  # Default to No (0)
         format_func=lambda x: exang_labels[x],
-        help=FEATURE_DESCRIPTIONS["exang"],
     )
     data["exang"] = None if exang_val is None or exang_val == -1 else int(exang_val)
 
     # --- ST Depression ---
     oldpeak_unknown = st.sidebar.checkbox(
-        "ST depression unknown", value=False, help="Check if exercise ECG oldpeak was not measured"
+        "ST depression unknown",
+        value=False,
     )
     if oldpeak_unknown:
         data["oldpeak"] = None
@@ -144,7 +139,6 @@ def render_input_form() -> dict[str, Any]:
             max_value=10.0,
             value=1.0,
             step=0.1,
-            help=FEATURE_DESCRIPTIONS["oldpeak"],
         )
 
     return data

@@ -24,14 +24,25 @@ def render_shap_chart(
         feature_names: Names of all transformed features.
         top_k: Number of top features to display.
     """
-    st.subheader("🔍 Top Contributing Factors")
+    st.subheader("Top Contributing Factors", icon=":material/bar_chart:")
 
     # Sort by |SHAP|
     abs_shap = np.abs(shap_values)
-    top_indices = np.argsort(abs_shap)[-top_k:][::-1]
+    if len(shap_values) == 0 or np.all(abs_shap < 1e-6):
+        st.info(
+            "Feature contributions are near population baseline for this profile.",
+            icon=":material/info:",
+        )
+        return
 
-    top_names = [_clean_feature_name(feature_names[i]) for i in top_indices]
-    top_values = shap_values[top_indices]
+    sorted_indices = np.argsort(abs_shap)[-top_k:][::-1]
+    selected_indices: list[int] = [int(i) for i in sorted_indices]
+    non_zero = [i for i in selected_indices if abs_shap[i] > 1e-6]
+    if non_zero:
+        selected_indices = non_zero
+
+    top_names = [_clean_feature_name(feature_names[i]) for i in selected_indices]
+    top_values = shap_values[selected_indices]
 
     # Horizontal bar chart
     fig, ax = plt.subplots(figsize=(8, max(4, top_k * 0.5)))
@@ -96,7 +107,7 @@ def _clean_feature_name(name: str) -> str:
     """Clean up sklearn ``ColumnTransformer`` output names.
 
     Args:
-        name: Raw feature name (e.g. ``'num__age'``, ``'cat__cp_2'``).
+        name: Raw feature name (e.g. ``'num__age'``, ``'cat__cp_2'``, ``'cat__restecg_0.0'``).
 
     Returns:
         Cleaned, human-readable label.
@@ -106,4 +117,13 @@ def _clean_feature_name(name: str) -> str:
             name = name[len(prefix) :]
             break
 
-    return _LABEL_MAP.get(name, name.replace("_", " ").title())
+    if name in _LABEL_MAP:
+        return _LABEL_MAP[name]
+
+    # Handle float string suffixes in one-hot encoded categories (e.g. restecg_0.0 -> restecg_0)
+    if name.endswith(".0"):
+        base_name = name[:-2]
+        if base_name in _LABEL_MAP:
+            return _LABEL_MAP[base_name]
+
+    return name.replace("_", " ").title()
