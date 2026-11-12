@@ -127,7 +127,7 @@ def load_raw_data(config: Config) -> pd.DataFrame:
         try:
             import shutil
 
-            import kagglehub  # type: ignore[import-untyped]
+            import kagglehub  # type: ignore
 
             logger.info(
                 "Fetching 920-row multi-center dataset from Kaggle via kagglehub (%s)...",

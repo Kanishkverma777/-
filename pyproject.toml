@@ -20,6 +20,7 @@ dependencies = [
     "seaborn>=0.13",
     "streamlit>=1.30",
     "ucimlrepo>=0.0.7",
+    "kagglehub>=0.2.0",
     "requests>=2.28",
 ]
 
@@ -59,6 +60,7 @@ module = [
     "shap.*",
     "streamlit.*",
     "ucimlrepo.*",
+    "kagglehub.*",
     "joblib.*",
     "matplotlib.*",
     "seaborn.*",

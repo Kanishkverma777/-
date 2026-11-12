@@ -52,6 +52,16 @@ CV_SCORING: dict[str, str] = {
 }
 
 
+def _safe_float(val: Any, default: float = 0.0) -> float:
+    """Safely convert a scalar, string, or numeric value to float."""
+    if val is None or pd.isna(val):
+        return default
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+
 def cross_validate_model_with_cv(
     pipeline: Any,
     x: pd.DataFrame,
@@ -245,7 +255,7 @@ def find_optimal_threshold_oof(
         )
         optimal_idx = int(df["recall"].idxmax())
 
-    raw_optimal_threshold = float(df.loc[optimal_idx, "threshold"])
+    raw_optimal_threshold = _safe_float(df.loc[optimal_idx, "threshold"])
     optimal_threshold = round(raw_optimal_threshold, 3)
 
     logger.info(
@@ -291,10 +301,10 @@ def find_optimal_threshold_oof(
 
     logger.info("OOF threshold analysis plot saved to %s", plot_path)
     oof_metrics = {
-        "recall": round(float(df.loc[optimal_idx, "recall"]), 4),
-        "precision": round(float(df.loc[optimal_idx, "precision"]), 4),
-        "f1": round(float(df.loc[optimal_idx, "f1"]), 4),
-        "accuracy": round(float(df.loc[optimal_idx, "accuracy"]), 4),
+        "recall": round(_safe_float(df.loc[optimal_idx, "recall"]), 4),
+        "precision": round(_safe_float(df.loc[optimal_idx, "precision"]), 4),
+        "f1": round(_safe_float(df.loc[optimal_idx, "f1"]), 4),
+        "accuracy": round(_safe_float(df.loc[optimal_idx, "accuracy"]), 4),
         "threshold": optimal_threshold,
     }
     return optimal_threshold, oof_metrics
@@ -749,40 +759,40 @@ def evaluate_leave_one_site_out(
         min_rec_idx = int(df_loso["recall"].idxmin())
         max_rec_idx = int(df_loso["recall"].idxmax())
         min_rec_site = str(df_loso.loc[min_rec_idx, "site"])
-        min_rec_val = float(df_loso.loc[min_rec_idx, "recall"])
+        min_rec_val = _safe_float(df_loso.loc[min_rec_idx, "recall"])
         max_rec_site = str(df_loso.loc[max_rec_idx, "site"])
-        max_rec_val = float(df_loso.loc[max_rec_idx, "recall"])
+        max_rec_val = _safe_float(df_loso.loc[max_rec_idx, "recall"])
 
         min_prev_idx = int(df_loso["prevalence"].idxmin())
         max_prev_idx = int(df_loso["prevalence"].idxmax())
         min_prev_site = str(df_loso.loc[min_prev_idx, "site"])
-        min_prev_val = float(df_loso.loc[min_prev_idx, "prevalence"])
+        min_prev_val = _safe_float(df_loso.loc[min_prev_idx, "prevalence"])
         max_prev_site = str(df_loso.loc[max_prev_idx, "site"])
-        max_prev_val = float(df_loso.loc[max_prev_idx, "prevalence"])
+        max_prev_val = _safe_float(df_loso.loc[max_prev_idx, "prevalence"])
 
         min_prec_idx = int(df_loso["precision"].idxmin())
         max_prec_idx = int(df_loso["precision"].idxmax())
         min_prec_site = str(df_loso.loc[min_prec_idx, "site"])
-        min_prec_val = float(df_loso.loc[min_prec_idx, "precision"])
+        min_prec_val = _safe_float(df_loso.loc[min_prec_idx, "precision"])
         max_prec_site = str(df_loso.loc[max_prec_idx, "site"])
-        max_prec_val = float(df_loso.loc[max_prec_idx, "precision"])
+        max_prec_val = _safe_float(df_loso.loc[max_prec_idx, "precision"])
 
         min_spec_idx = int(df_loso["specificity"].idxmin())
         max_spec_idx = int(df_loso["specificity"].idxmax())
         min_spec_site = str(df_loso.loc[min_spec_idx, "site"])
-        min_spec_val = float(df_loso.loc[min_spec_idx, "specificity"])
+        min_spec_val = _safe_float(df_loso.loc[min_spec_idx, "specificity"])
         max_spec_site = str(df_loso.loc[max_spec_idx, "site"])
-        max_spec_val = float(df_loso.loc[max_spec_idx, "specificity"])
+        max_spec_val = _safe_float(df_loso.loc[max_spec_idx, "specificity"])
 
         swiss_matches = df_loso[df_loso["site"].str.startswith("Switzerland")]
         if len(swiss_matches) > 0:
             swiss_row = swiss_matches.iloc[0]
             swiss_pos = int(swiss_row["positives"])
             swiss_neg = int(swiss_row["negatives"])
-            swiss_prev = float(swiss_row["prevalence"])
-            swiss_spec = float(swiss_row["specificity"])
-            swiss_roc = float(swiss_row["roc_auc"])
-            swiss_pr = float(swiss_row["pr_auc"])
+            swiss_prev = _safe_float(swiss_row["prevalence"])
+            swiss_spec = _safe_float(swiss_row["specificity"])
+            swiss_roc = _safe_float(swiss_row["roc_auc"])
+            swiss_pr = _safe_float(swiss_row["pr_auc"])
             swiss_note = (
                 f"2. **Switzerland Low-Confidence Warning & PR-AUC Baseline:**\n"
                 f"   Switzerland includes {swiss_neg} negative patients and {swiss_pos}\n"
